@@ -2,21 +2,21 @@ import pygame as p
 import random as r
 
 class user(p.sprite.Sprite):
-    def __init__(self):
+    def __init__(self, WIDTH, HEIGHT):
         super().__init__()
         self.image = p.Surface((50, 50))  #Create a surface for the character
         self.image.fill((255,255,255))  #Fill the surface with white color
         self.rect = self.image.get_rect()  #Get the rectangular area of the surface
-        self.rect.center = (400, 550)  #Set initial position
+        self.rect.center = ((WIDTH - 25) // 2, HEIGHT - 50)  #Set initial position
         self.speed = 10
 
     def newColor(self, compColor):
         self.image.fill(compColor)
 
-    def update(self, keys):
+    def update(self, keys, WIDTH):
         if keys[p.K_a] and self.rect.x >= 25:
             self.rect.x -= self.speed
-        elif keys[p.K_d] and self.rect.x <= 725:
+        elif keys[p.K_d] and self.rect.x <= WIDTH-75:
             self.rect.x += self.speed
         elif keys[p.K_SPACE]:
             return p.K_SPACE

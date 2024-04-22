@@ -4,11 +4,11 @@ import func
 
 p.init()    
 
-WIDTH,HEIGHT = 800,600
+WIDTH,HEIGHT = 1000,600
 screen = p.display.set_mode((WIDTH, HEIGHT))
 p.display.set_caption("Welcome to Hell")
 
-user, allSprites = func.user(), p.sprite.Group()
+user, allSprites = func.user(WIDTH, HEIGHT), p.sprite.Group()
 running, start, increaseAlpha = True, True, True
 fadeSpeed, alpha = 1.4, -5
 allSprites.add(user)
@@ -24,7 +24,7 @@ while running:
         if event.type == p.QUIT:
             running = False
         keys = p.key.get_pressed()
-        match user.update(keys):
+        match user.update(keys, WIDTH):
             case p.K_SPACE:
                 start = False
                 color = func.getColor()
