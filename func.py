@@ -1,7 +1,8 @@
 import pygame as p
 import random as r
+import os
 
-class user(p.sprite.Sprite):
+class user(p.sprite.Sprite): #User sprite class
     def __init__(self, WIDTH, HEIGHT):
         super().__init__()
         self.image = p.Surface((50, 50))  #Create a surface for the character
@@ -10,10 +11,10 @@ class user(p.sprite.Sprite):
         self.rect.center = ((WIDTH - 25) // 2, HEIGHT - 50)  #Set initial position
         self.speed = 10
 
-    def newColor(self, compColor):
+    def newColor(self, compColor): #Change the color of the user to a complementary color
         self.image.fill(compColor)
 
-    def update(self, keys, WIDTH):
+    def update(self, keys, WIDTH): #Take in the events and move the user appropriately
         if keys[p.K_a] and self.rect.x >= 25:
             self.rect.x -= self.speed
         elif keys[p.K_d] and self.rect.x <= WIDTH-75:
@@ -23,7 +24,7 @@ class user(p.sprite.Sprite):
         elif keys[p.K_ESCAPE]:
             return p.K_ESCAPE
 
-def drawPause(screen, pauseFont, selection):
+def drawPause(screen, pauseFont, selection): #Draw the pause menu
     screen.fill((255,255,255)) #White border around the pause menu
     menuWidth = 500 #Define the dimensions and position of the menu rectangle
     menuHeight = 500
@@ -41,7 +42,7 @@ def drawPause(screen, pauseFont, selection):
     screen.blit(resumeText, (WIDTH // 2 - resumeText.get_width() // 2, menuY + 4 * pauseText.get_height()))
     screen.blit(quitText, (WIDTH // 2 - quitText.get_width() // 2, menuY + 7 * pauseText.get_height()))
     
-    match selection:
+    match selection: #Match which box the user is highlighting
         case "resume":
             p.draw.rect(screen, (212, 175, 55), ((WIDTH - 300) // 2, (HEIGHT - 166) // 2, 300, 100), 5)
         case "quit":
@@ -49,7 +50,7 @@ def drawPause(screen, pauseFont, selection):
     
     p.display.flip()
 
-def pause(screen, startFont):
+def pause(screen, startFont): #Pause the game and wait for a resume or quit event
     selection = "resume"
     while True:
         drawPause(screen, startFont, selection)
@@ -61,7 +62,7 @@ def pause(screen, startFont):
                     match event.key:
                         case p.K_RETURN:
                             return selection
-                        case p.K_UP:
+                        case p.K_UP: #Use a variable to determine which selection to highlight in the above function
                             selection = "resume"
                         case p.K_DOWN:
                             selection = "quit"
@@ -76,33 +77,44 @@ def getCompColor(color):
     return (255-R, 255-G, 255-B)
         
 def drawFPS(screen, color, WIDTH, fps, font):
-    p.draw.rect(screen, color, (WIDTH - 105, 20, 85, 17))
+    p.draw.rect(screen, color, (WIDTH - 105, 20, 85, 17)) #Draw the FPS on the screen
     fpsText = font.render(f"FPS: {fps:.0f}", True, (255,255,255))
     screen.blit(fpsText, (WIDTH - 105, 20))
     
 def drawScore(screen, color, highScore, score, font):
-    p.draw.rect(screen, color, (15, 0, 85, 0))
+    p.draw.rect(screen, color, (15, 0, 85, 0)) #Draw the high score on the screen
     scoreText = font.render(f"High Score: {highScore:.0f}", True, (255, 255, 255)) 
     screen.blit(scoreText, (15, 20))
     
-    p.draw.rect(screen, color, (15, 45, 85, 15))
+    p.draw.rect(screen, color, (15, 45, 85, 15)) #Draw the score on the screen
     scoreText = font.render(f"Score: {score:.0f}", True, (255, 255, 255))
     screen.blit(scoreText, (15, 40))
     
 def drawStartText(increaseAlpha, alpha, fadeSpeed, startFont, WIDTH, HEIGHT, screen):
-    match increaseAlpha:
+    match increaseAlpha: #If the alpha is growing, increment
         case True:
             alpha += fadeSpeed
             if alpha >= 255:
                 alpha, increaseAlpha = 255, False
-        case False:
+        case False: #If the alpha is shrinking, decrement
             alpha -= fadeSpeed
             if alpha <= 0:
                 alpha, increaseAlpha = -57, True  
                                    
-    startScreenText = startFont.render("Press Space To Start", True, getColor())           
-    startText = startScreenText.copy()
-    startText.set_alpha(alpha)
+    startScreenText = startFont.render("Press Space To Start", True, getColor()) #Splash screen text          
+    startText = startScreenText.copy() 
+    startText.set_alpha(alpha) #Set the alpha value
     p.draw.rect(screen, (0,0,0), (WIDTH // 2 - startText.get_width() // 2, HEIGHT // 2 - startText.get_height() // 2, startText.get_width(), startText.get_height()),)
     screen.blit(startText, (WIDTH // 2 - startText.get_width() // 2, HEIGHT // 2 - startText.get_height() // 2))
     return increaseAlpha, alpha
+
+def loadSave(): #Load in the value from the score.txt file
+    if os.path.exists("score.txt"):
+        with open("score.txt", "r") as file:
+            return int(file.read())
+    else:
+        return 0
+    
+def saveScore(highScore): #Save score to score.txt file
+    with open("score.txt", "w") as file:
+        file.write(str(highScore))
