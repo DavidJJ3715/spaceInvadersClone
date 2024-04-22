@@ -76,9 +76,18 @@ def getCompColor(color):
     return (255-R, 255-G, 255-B)
         
 def drawFPS(screen, color, WIDTH, fps, font):
-    p.draw.rect(screen, color, (WIDTH-105, 20, 85, 17))
-    fps_text = font.render(f"FPS: {fps:.0f}", True, (255,255,255))
-    screen.blit(fps_text, (WIDTH-105,20))
+    p.draw.rect(screen, color, (WIDTH - 105, 20, 85, 17))
+    fpsText = font.render(f"FPS: {fps:.0f}", True, (255,255,255))
+    screen.blit(fpsText, (WIDTH - 105, 20))
+    
+def drawScore(screen, color, highScore, score, font):
+    p.draw.rect(screen, color, (15, 0, 85, 0))
+    scoreText = font.render(f"High Score: {highScore:.0f}", True, (255, 255, 255)) 
+    screen.blit(scoreText, (15, 20))
+    
+    p.draw.rect(screen, color, (15, 45, 85, 15))
+    scoreText = font.render(f"Score: {score:.0f}", True, (255, 255, 255))
+    screen.blit(scoreText, (15, 40))
     
 def drawStartText(increaseAlpha, alpha, fadeSpeed, startFont, WIDTH, HEIGHT, screen):
     match increaseAlpha:
