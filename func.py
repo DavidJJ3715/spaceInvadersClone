@@ -7,13 +7,21 @@ class user(p.sprite.Sprite):
         self.image = p.Surface((50, 50))  #Create a surface for the character
         self.image.fill((255,255,255))  #Fill the surface with white color
         self.rect = self.image.get_rect()  #Get the rectangular area of the surface
-        self.rect.center = (400, 525)  #Set initial position
+        self.rect.center = (400, 550)  #Set initial position
+        self.speed = 10
 
     def newColor(self, compColor):
         self.image.fill(compColor)
 
-    def update(self, key):
-        pass
+    def update(self, keys):
+        if keys[p.K_a] and self.rect.x >= 25:
+            self.rect.x -= self.speed
+        elif keys[p.K_d] and self.rect.x <= 725:
+            self.rect.x += self.speed
+        elif keys[p.K_SPACE]:
+            return p.K_SPACE
+        elif keys[p.K_ESCAPE]:
+            return p.K_ESCAPE
 
 def getColor(): #Return an RGB value tuple
     return (r.randint(0,255), r.randint(0,255), r.randint(0,255)) 

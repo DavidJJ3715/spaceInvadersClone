@@ -20,22 +20,22 @@ color = (0,0,0)
 
 while running:
     for event in p.event.get():
-        match event.type:
-            case p.QUIT:
+        if event.type == p.QUIT:
+            running = False
+        keys = p.key.get_pressed()
+        match user.update(keys):
+            case p.K_SPACE:
+                start = False
+                color = func.getColor()
+                screen.fill(color)
+                user.newColor(func.getCompColor(color))
+            case p.K_ESCAPE:
                 running = False
-            case p.KEYDOWN:
-                match event.key:
-                    case p.K_ESCAPE:
-                        running = False
-                    case p.K_SPACE:
-                        start = False
-                        color = func.getColor()
-                        screen.fill(color)
-                        user.newColor(func.getCompColor(color))
-                        
+                                    
     if start:
         increaseAlpha, alpha = func.drawStartText(increaseAlpha, alpha, fadeSpeed, startFont, WIDTH, HEIGHT, screen)
     else:
+        screen.fill(color)
         allSprites.draw(screen)
 
     func.drawFPS(screen, color, WIDTH, clock.get_fps(), fpsFont)
