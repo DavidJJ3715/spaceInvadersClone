@@ -15,6 +15,7 @@ allSprites.add(user)
 
 fpsFont = p.font.SysFont(None, 30)
 startFont = p.font.SysFont(None, 52)
+pauseFont = p.font.SysFont(None, 72)
 clock = p.time.Clock()
 color = (0,0,0)
 
@@ -30,7 +31,9 @@ while running:
                 screen.fill(color)
                 user.newColor(func.getCompColor(color))
             case p.K_ESCAPE:
-                running = False
+                if not start:
+                    if func.pause(screen, pauseFont) == "quit":
+                        running = False
                                     
     if start:
         increaseAlpha, alpha = func.drawStartText(increaseAlpha, alpha, fadeSpeed, startFont, WIDTH, HEIGHT, screen)

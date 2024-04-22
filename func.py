@@ -23,6 +23,51 @@ class user(p.sprite.Sprite):
         elif keys[p.K_ESCAPE]:
             return p.K_ESCAPE
 
+def drawPause(screen, pauseFont, selection):
+    screen.fill((255,255,255)) #White border around the pause menu
+    menuWidth = 500 #Define the dimensions and position of the menu rectangle
+    menuHeight = 500
+    WIDTH = screen.get_width()
+    HEIGHT = screen.get_height()
+    menuX = (WIDTH - menuWidth) // 2
+    menuY = (HEIGHT - menuHeight) // 2
+    p.draw.rect(screen, (0, 0, 0, 128), (menuX, menuY, menuWidth, menuHeight)) #Black box that the text sits in
+    
+    pauseText = pauseFont.render("GAME PAUSED", True, ((255,255,255))) 
+    resumeText = pauseFont.render("RESUME", True, ((255,255,255)))
+    quitText = pauseFont.render("QUIT", True, ((255,255,255))) 
+             
+    screen.blit(pauseText, (WIDTH // 2 - pauseText.get_width() // 2, menuY + pauseText.get_height()))
+    screen.blit(resumeText, (WIDTH // 2 - resumeText.get_width() // 2, menuY + 4 * pauseText.get_height()))
+    screen.blit(quitText, (WIDTH // 2 - quitText.get_width() // 2, menuY + 7 * pauseText.get_height()))
+    
+    match selection:
+        case "resume":
+            p.draw.rect(screen, (212, 175, 55), ((WIDTH - 300) // 2, (HEIGHT - 166) // 2, 300, 100), 5)
+        case "quit":
+            p.draw.rect(screen, (212, 175, 55), ((WIDTH - 300) // 2, HEIGHT - 233, 300, 100), 5)
+    
+    p.display.flip()
+
+def pause(screen, startFont):
+    selection = "resume"
+    while True:
+        drawPause(screen, startFont, selection)
+        for event in p.event.get():
+            match event.type:
+                case p.QUIT:
+                    return True
+                case p.KEYDOWN:
+                    match event.key:
+                        case p.K_RETURN:
+                            return selection
+                        case p.K_UP:
+                            selection = "resume"
+                        case p.K_DOWN:
+                            selection = "quit"
+                        case _:
+                            return False
+
 def getColor(): #Return an RGB value tuple
     return (r.randint(0,255), r.randint(0,255), r.randint(0,255)) 
 
