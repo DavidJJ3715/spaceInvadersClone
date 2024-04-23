@@ -12,7 +12,7 @@ game:
 		python3 macKey.py; \
 	fi
 
-noClear: #Don't use the key files. Used for debugging
+noKey: #Don't use the key files. Used for debugging
 	#Check if OS environment variable equals Windows_NT
 	if [ "$(OS)" = "Windows_NT" ]; then \
 		python game.py; \

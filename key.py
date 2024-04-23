@@ -1,4 +1,13 @@
 import pyautogui
+import platform
 
-pyautogui.hotkey('ctrl', 'l')
-pyautogui.hotkey('ctrl', '`')
+opSys = platform.system()
+
+if opSys == "Darwin":
+    pyautogui.keyDown('command')
+    pyautogui.keyDown('k')
+    pyautogui.keyUp('command')
+    pyautogui.hotkey('ctrl', '`')
+elif opSys == "Windows":
+    pyautogui.hotkey('ctrl', 'l')
+    pyautogui.hotkey('ctrl', '`')
