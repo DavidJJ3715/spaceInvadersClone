@@ -9,7 +9,7 @@ game:
 		python key.py; \
 	else \
 		python3 game.py; \
-		python3 macKey.py; \
+		python3 key.py; \
 	fi
 
 noKey: #Don't use the key files. Used for debugging
