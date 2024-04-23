@@ -35,11 +35,11 @@ class user(p.sprite.Sprite): #User sprite class
 class projectile(p.sprite.Sprite):
     def __init__(self, userColor, userX, userY):
         super().__init__()
-        self.image = p.Surface((10,2))
+        self.image = p.Surface((6,6))
         self.image.fill(userColor)
         self.rect = self.image.get_rect()
         self.rect.center = (userX, userY)
-        self.speed = 5
+        self.speed = 10
     
     def update(self):
         self.rect.y -= self.speed
