@@ -9,7 +9,7 @@ class user(p.sprite.Sprite): #User sprite class
         self.image.fill((255,255,255))  #Fill the surface with white color
         self.rect = self.image.get_rect()  #Get the rectangular area of the surface
         self.rect.center = ((WIDTH - 25) // 2, HEIGHT - 50)  #Set initial position
-        self.speed = 10
+        self.speed = 15
 
     def newColor(self, compColor): #Change the color of the user to a complementary color
         self.image.fill(compColor)

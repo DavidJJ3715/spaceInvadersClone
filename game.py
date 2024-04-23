@@ -4,7 +4,7 @@ import func
 
 p.init()    
 
-WIDTH, HEIGHT = 800, 600 #The resolution/size of the game window
+WIDTH, HEIGHT = 1000, 600 #The resolution/size of the game window (Recommended 800-1200 WIDTH. NOT RECOMMENDED to touch HEIGHT)
 screen = p.display.set_mode((WIDTH, HEIGHT))
 p.display.set_caption("Welcome to Hell")
 
@@ -53,7 +53,7 @@ while running:
 
     score = int((p.time.get_ticks() - startTime - timePaused) / 100) #Calculate the score based on when the game started, the current time, and the amount of time in the pause menu
     p.display.flip()
-    clock.tick(144) #Frame rate cap
+    clock.tick(120) #Frame rate cap
 
 if score > highScore: #Save the high score to score.txt file if user beat high score
     func.saveScore(score)
