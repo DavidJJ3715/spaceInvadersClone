@@ -10,9 +10,12 @@ class user(p.sprite.Sprite): #User sprite class
         self.rect = self.image.get_rect()  #Get the rectangular area of the surface
         self.rect.center = ((WIDTH - 25) // 2, HEIGHT - 50)  #Set initial position
         self.speed = 15
+        self.color = ((255,255,255))
+        self.lastShot = 0
 
     def newColor(self, compColor): #Change the color of the user to a complementary color
         self.image.fill(compColor)
+        self.color = compColor
 
     def update(self, keys, WIDTH): #Take in the events and move the user appropriately
         if keys[p.K_a] and self.rect.x >= 25:
@@ -23,6 +26,25 @@ class user(p.sprite.Sprite): #User sprite class
             return p.K_SPACE
         elif keys[p.K_ESCAPE]:
             return p.K_ESCAPE
+        
+    def shoot(self, currentTime):
+        self.lastShot = currentTime
+        proj = projectile(self.color, self.rect.centerx, self.rect.centery)
+        return proj
+ 
+class projectile(p.sprite.Sprite):
+    def __init__(self, userColor, userX, userY):
+        super().__init__()
+        self.image = p.Surface((10,2))
+        self.image.fill(userColor)
+        self.rect = self.image.get_rect()
+        self.rect.center = (userX, userY)
+        self.speed = 5
+    
+    def update(self):
+        self.rect.y -= self.speed
+        if self.rect.bottom < 0:
+            self.kill()
 
 def drawPause(screen, pauseFont, selection): #Draw the pause menu
     screen.fill((255,255,255)) #White border around the pause menu

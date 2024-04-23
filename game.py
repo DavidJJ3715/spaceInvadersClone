@@ -8,7 +8,7 @@ WIDTH, HEIGHT = 1000, 600 #The resolution/size of the game window (Recommended 8
 screen = p.display.set_mode((WIDTH, HEIGHT))
 p.display.set_caption("Welcome to Hell")
 
-user, allSprites = func.user(WIDTH, HEIGHT), p.sprite.Group()
+user, allSprites, projectiles = func.user(WIDTH, HEIGHT), p.sprite.Group(), p.sprite.Group()
 running, start, increaseAlpha = True, True, True
 startTime, fadeSpeed, alpha = 0, 1.4, -5
 allSprites.add(user) #Group of all class entities so there are less function calls
@@ -42,12 +42,17 @@ while running:
                     if func.pause(screen, pauseFont) == "quit": #If the user hits quit at the pause menu
                         running = False
                     timePaused += (p.time.get_ticks() - beforePause) #Stop the score when paused
-                                    
+                                               
     if start:
         increaseAlpha, alpha = func.drawStartText(increaseAlpha, alpha, fadeSpeed, startFont, WIDTH, HEIGHT, screen)
     else:
+        proj = user.shoot(p.time.get_ticks())
+        if proj:
+            projectiles.add(proj) 
+        projectiles.update()
         screen.fill(color) #Update the background color
         allSprites.draw(screen) #Draw all class objects to the screen
+        projectiles.draw(screen)
         func.drawFPS(screen, color, WIDTH, clock.get_fps(), fpsFont) #Draw the FPS to the screen
         func.drawScore(screen, color, highScore, score, fpsFont) #Draw the scores to the screen
 
