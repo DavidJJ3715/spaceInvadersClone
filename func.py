@@ -2,8 +2,12 @@ import pygame as p
 import random as r
 import os
 
+WIDTH, HEIGHT = 1000, 600 #The resolution/size of the game window (Recommended 800-1200 WIDTH. NOT RECOMMENDED to touch HEIGHT)
+centerWidth = (WIDTH - 25) // 2
+enemySpawns = [centerWidth, centerWidth-90, centerWidth+90, centerWidth-180, centerWidth+180]
+
 class user(p.sprite.Sprite): #User sprite class
-    def __init__(self, WIDTH, HEIGHT):
+    def __init__(self):
         super().__init__()
         self.image = p.Surface((50, 50))  #Create a surface for the character
         self.image.fill((255,255,255))  #Fill the surface with white color
@@ -17,7 +21,7 @@ class user(p.sprite.Sprite): #User sprite class
         self.image.fill(compColor)
         self.color = compColor
 
-    def update(self, keys, WIDTH): #Take in the events and move the user appropriately
+    def update(self, keys): #Take in the events and move the user appropriately
         if keys[p.K_a] and self.rect.x >= 25:
             self.rect.x -= self.speed
         elif keys[p.K_d] and self.rect.x <= WIDTH-75:
@@ -41,24 +45,47 @@ class projectile(p.sprite.Sprite):
         self.rect.center = (userX, userY)
         self.speed = 10
     
-    def update(self):
-        self.rect.y -= self.speed
-        if self.rect.bottom < 0:
+    def update(self, enemies):
+        if self.rect.bottom < 0 or self.collision(enemies):
             self.kill()
-            
+        self.rect.y -= self.speed
+    
+    def collision(self, enemies):
+        for enemy in enemies:
+            if self.rect.top <= enemy.rect.bottom:
+                if self.rect.left >= enemy.rect.right-36 and self.rect.right <= enemy.rect.left+36:
+                    enemy.damage()
+                    return True
+            pass
+        pass
+    
 class enemy(p.sprite.Sprite):
-    def __init__(self,WIDTH):
+    def __init__(self):
         super().__init__()
         self.image = p.Surface((30,30))
         self.image.fill(getColor())
         self.rect = self.image.get_rect()
+        self.rect.center = (enemySpawns[r.randint(0,len(enemySpawns)-1)], 20)
         self.speed = 1
-        self.rect.center = (r.randint(40,WIDTH-40),50)
+        self.accel = True
+        self.health = 100
         
-    def update(self, HEIGHT):
-        self.rect.y += self.speed
-        if self.rect.bottom > HEIGHT-45:
+    def update(self):
+        if self.accel: #Box is not on bottom yet, update it if it is time
+            self.rect.y += self.speed
+            self.accel = False
+        else: #This boolean flag is because setting the speed to below one just rounds to either one or zero. This allows the programmer to use fractions of speed
+            self.accel = True
+        if self.rect.bottom > HEIGHT-45: #Is the box on the bottom? Take a life
             self.kill()
+            return True     
+
+            
+    def damage(self):
+        if self.health <= 0:
+            self.kill()
+        else: 
+            self.health -= 3
 
 def drawPause(screen, pauseFont, selection): #Draw the pause menu
     screen.fill((255,255,255)) #White border around the pause menu
@@ -112,7 +139,7 @@ def getCompColor(color):
     R,G,B = color #Extract RGB components
     return (255-R, 255-G, 255-B)
         
-def drawFPS(screen, color, WIDTH, fps, font):
+def drawFPS(screen, color, fps, font):
     p.draw.rect(screen, color, (WIDTH - 105, 20, 85, 17)) #Draw the FPS on the screen
     fpsText = font.render(f"FPS: {fps:.0f}", True, (255,255,255))
     screen.blit(fpsText, (WIDTH - 105, 20))
@@ -126,7 +153,7 @@ def drawScore(screen, color, highScore, score, font):
     scoreText = font.render(f"Score: {score:.0f}", True, (255, 255, 255))
     screen.blit(scoreText, (15, 40))
     
-def drawStartText(increaseAlpha, alpha, fadeSpeed, startFont, WIDTH, HEIGHT, screen):
+def drawStartText(increaseAlpha, alpha, fadeSpeed, startFont, screen):
     match increaseAlpha: #If the alpha is growing, increment
         case True:
             alpha += fadeSpeed
