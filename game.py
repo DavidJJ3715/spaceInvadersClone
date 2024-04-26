@@ -7,8 +7,8 @@ screen = p.display.set_mode((func.WIDTH, func.HEIGHT))
 p.display.set_caption("Welcome to Hell")
 
 user, userSprite, enemies, projectiles = func.user(), p.sprite.Group(), p.sprite.Group(), p.sprite.Group()
-running, start, increaseAlpha = True, True, True
-startTime, fadeSpeed, alpha = 0, 1.4, -5
+start, increaseAlpha = True, True
+startTime, fadeSpeed, alpha, extraPoints = 0, 1.4, -5, 0
 userSprite.add(user) #Group of all class entities so there are less function calls
 
 timePaused = 0 #Time in the pause menu. 0 by default
@@ -24,10 +24,10 @@ for i in range(5):
     en = func.enemy()
     enemies.add(en)
 
-while running:
+while not user.isDead:
     for event in p.event.get():
         if event.type == p.QUIT:
-            running = False
+            user.killUser()
         keys = p.key.get_pressed()
         match user.update(keys):
             case p.K_SPACE:
@@ -42,7 +42,7 @@ while running:
                 if not start:
                     beforePause = p.time.get_ticks() #Grab when the game was paused
                     if func.pause(screen, pauseFont) == "quit": #If the user hits quit at the pause menu
-                        running = False
+                        user.killUser()
                     timePaused += (p.time.get_ticks() - beforePause) #Stop the score when paused
                                                
     if start:
@@ -51,8 +51,14 @@ while running:
         proj = user.shoot(p.time.get_ticks())
         if proj:
             projectiles.add(proj) #Add another projectile if the time is right
-        projectiles.update(enemies) #Update the projectile's locations
-        enemies.update() #Update the location of the enemies
+        for projectile in projectiles:
+            bonus = projectile.update(enemies)
+            if bonus:
+                extraPoints += 1
+        for enemy in enemies:
+            lifeLost = enemy.update()
+            if lifeLost:
+                user.damage()
         screen.fill(color) #Update the background color
         userSprite.draw(screen) #Draw the user to the screen
         enemies.draw(screen) #Draw all enemy objects to the screen
@@ -60,7 +66,7 @@ while running:
         func.drawFPS(screen, color, clock.get_fps(), fpsFont) #Draw the FPS to the screen
         func.drawScore(screen, color, highScore, score, fpsFont) #Draw the scores to the screen
 
-    score = int((p.time.get_ticks() - startTime - timePaused) / 100) #Calculate the score based on when the game started, the current time, and the amount of time in the pause menu
+    score = int((p.time.get_ticks() - startTime - timePaused) / 100) + extraPoints #Calculate the score based on when the game started, the current time, and the amount of time in the pause menu
     p.display.flip()
     clock.tick(120) #Frame rate cap
 

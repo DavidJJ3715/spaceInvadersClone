@@ -2,9 +2,20 @@ import pygame as p
 import random as r
 import os
 
-WIDTH, HEIGHT = 1000, 600 #The resolution/size of the game window (Recommended 800-1200 WIDTH. NOT RECOMMENDED to touch HEIGHT)
+#!  Recommended 800-1200 WIDTH. NOT RECOMMENDED to touch HEIGHT 
+#!  Game was developed on 1000x600 so that will provide optimal experience
+
+#Global variables that get used in both files
+WIDTH, HEIGHT = 1000, 600 #The resolution/size of the game window 
 centerWidth = (WIDTH - 25) // 2
-enemySpawns = [centerWidth, centerWidth-90, centerWidth+90, centerWidth-180, centerWidth+180]
+enemySpawns = [centerWidth, centerWidth-90, centerWidth+90, centerWidth-180, centerWidth+180, centerWidth-270, centerWidth+270]
+
+if 800 <= WIDTH:
+    enemySpawns.append(centerWidth-360)
+    enemySpawns.append(centerWidth+360)
+if 1000 <= WIDTH:
+    enemySpawns.append(centerWidth-450)
+    enemySpawns.append(centerWidth+450)
 
 class user(p.sprite.Sprite): #User sprite class
     def __init__(self):
@@ -16,6 +27,8 @@ class user(p.sprite.Sprite): #User sprite class
         self.speed = 15
         self.color = ((255,255,255))
         self.lastShot = 0
+        self.health = 3
+        self.isDead = False
 
     def newColor(self, compColor): #Change the color of the user to a complementary color
         self.image.fill(compColor)
@@ -35,6 +48,15 @@ class user(p.sprite.Sprite): #User sprite class
         self.lastShot = currentTime
         proj = projectile(self.color, self.rect.centerx, self.rect.centery)
         return proj
+    
+    def damage(self):
+        if self.health-1 == 0:
+            self.killUser()
+        self.health -= 1
+        
+    def killUser(self):
+        self.health = 0
+        self.isDead = True
  
 class projectile(p.sprite.Sprite):
     def __init__(self, userColor, userX, userY):
@@ -46,18 +68,23 @@ class projectile(p.sprite.Sprite):
         self.speed = 10
     
     def update(self, enemies):
-        if self.rect.bottom < 0 or self.collision(enemies):
-            self.kill()
-        self.rect.y -= self.speed
+        hit, killed = self.collision(enemies) #Collision returns if the projectile hits a target and whether the target is dead or not
+        if self.rect.bottom < 0 or hit: #Kill the projectile if the target is hit
+            self.kill() #Destroy the projectile
+            return killed #Return whether or not an enemy was just hit, or was killed
+        else:
+            self.rect.y -= self.speed #Nothing was hit. Keep the projectile moving
+            return False
     
-    def collision(self, enemies):
-        for enemy in enemies:
-            if self.rect.top <= enemy.rect.bottom:
-                if self.rect.left >= enemy.rect.right-36 and self.rect.right <= enemy.rect.left+36:
-                    enemy.damage()
-                    return True
-            pass
-        pass
+    def collision(self, enemies): 
+        for enemy in enemies: #Go through every enemy on screen to see if there is a collision
+            if self.rect.top <= enemy.rect.bottom: #If the top of the projectile is above the bottom of the enemy
+                if self.rect.left >= enemy.rect.right-36 and self.rect.right <= enemy.rect.left+36: #Check if the projectile is close enough to the enemy left and right
+                    if enemy.damage(): #Check if the enemy was hit
+                        return True, True #Return hit and kill
+                    else:
+                        return True, False #Return hit and no kill
+        return False, False
     
 class enemy(p.sprite.Sprite):
     def __init__(self):
@@ -78,14 +105,17 @@ class enemy(p.sprite.Sprite):
             self.accel = True
         if self.rect.bottom > HEIGHT-45: #Is the box on the bottom? Take a life
             self.kill()
-            return True     
+            return True 
+        else: #Box is not at bottom, don't take a life
+            return False    
 
-            
     def damage(self):
-        if self.health <= 0:
-            self.kill()
+        if self.health <= 0: #Check if the enemy is dead
+            self.kill() #Is dead, so destroy the enemy
+            return True #Tell the projectile that it killed an enemy
         else: 
-            self.health -= 3
+            self.health -= 3 #Not dead, make it take damage
+            return False #Tell the projectile that it has not killed the enemy yet
 
 def drawPause(screen, pauseFont, selection): #Draw the pause menu
     screen.fill((255,255,255)) #White border around the pause menu
