@@ -3,12 +3,13 @@ import random as r
 import os
 
 #!  Recommended 800-1200 WIDTH. NOT RECOMMENDED to touch HEIGHT 
-#!  Game was developed on 1000x600 so that will provide optimal experience
+#!  Game was developed on 800x600 so that will provide optimal experience
 
 #Global variables that get used in both files
-WIDTH, HEIGHT = 1000, 600 #The resolution/size of the game window 
+WIDTH, HEIGHT = 800, 600 #The resolution/size of the game window 
 centerWidth = (WIDTH - 25) // 2
 enemySpawns = [centerWidth, centerWidth-90, centerWidth+90, centerWidth-180, centerWidth+180, centerWidth-270, centerWidth+270]
+spawnLimit = 12
 
 if 800 <= WIDTH:
     enemySpawns.append(centerWidth-360)
@@ -94,15 +95,18 @@ class enemy(p.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.center = (enemySpawns[r.randint(0,len(enemySpawns)-1)], 20)
         self.speed = 1
-        self.accel = True
+        self.accel, self.accel2 = True, True
         self.health = 100
         
     def update(self):
-        if self.accel: #Box is not on bottom yet, update it if it is time
+        if self.accel and self.accel2: #Box is not on bottom yet, update it if it is time
             self.rect.y += self.speed
-            self.accel = False
+            self.accel, self.accel2 = False, False
         else: #This boolean flag is because setting the speed to below one just rounds to either one or zero. This allows the programmer to use fractions of speed
-            self.accel = True
+            if not self.accel:
+                self.accel = True
+            elif self.accel:
+                self.accel2 = True
         if self.rect.bottom > HEIGHT-45: #Is the box on the bottom? Take a life
             self.kill()
             return True 
@@ -114,8 +118,19 @@ class enemy(p.sprite.Sprite):
             self.kill() #Is dead, so destroy the enemy
             return True #Tell the projectile that it killed an enemy
         else: 
-            self.health -= 3 #Not dead, make it take damage
+            self.health -= 5 #Not dead, make it take damage
             return False #Tell the projectile that it has not killed the enemy yet
+
+def changeSpawnLimit(enemiesKilled):
+    pass
+
+def spawnEnemies(enemies):
+    if len(enemies) < spawnLimit:
+        en = enemy()
+        for temp in enemies:
+            if en.rect.bottom > temp.rect.top-75 and en.rect.left == temp.rect.left and en.rect.right == temp.rect.right:
+                return False
+        return en
 
 def drawPause(screen, pauseFont, selection): #Draw the pause menu
     screen.fill((255,255,255)) #White border around the pause menu
@@ -159,8 +174,6 @@ def pause(screen, startFont): #Pause the game and wait for a resume or quit even
                             selection = "resume"
                         case p.K_DOWN:
                             selection = "quit"
-                        case _:
-                            return False
 
 def getColor(): #Return an RGB value tuple
     return (r.randint(0,255), r.randint(0,255), r.randint(0,255)) 
