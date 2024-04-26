@@ -22,6 +22,9 @@ color = (0,0,0) #The color being returned by func.getColor(). Black by default
 
 highScore = func.loadSave()
 
+en = func.enemy(WIDTH)
+allSprites.add(en)
+
 while running:
     for event in p.event.get():
         if event.type == p.QUIT:
@@ -46,6 +49,7 @@ while running:
     if start:
         increaseAlpha, alpha = func.drawStartText(increaseAlpha, alpha, fadeSpeed, startFont, WIDTH, HEIGHT, screen)
     else:
+        en.update(HEIGHT)
         proj = user.shoot(p.time.get_ticks())
         if proj:
             projectiles.add(proj) 

@@ -45,6 +45,20 @@ class projectile(p.sprite.Sprite):
         self.rect.y -= self.speed
         if self.rect.bottom < 0:
             self.kill()
+            
+class enemy(p.sprite.Sprite):
+    def __init__(self,WIDTH):
+        super().__init__()
+        self.image = p.Surface((30,30))
+        self.image.fill(getColor())
+        self.rect = self.image.get_rect()
+        self.speed = 1
+        self.rect.center = (r.randint(40,WIDTH-40),50)
+        
+    def update(self, HEIGHT):
+        self.rect.y += self.speed
+        if self.rect.bottom > HEIGHT-45:
+            self.kill()
 
 def drawPause(screen, pauseFont, selection): #Draw the pause menu
     screen.fill((255,255,255)) #White border around the pause menu
