@@ -2,7 +2,13 @@ import pygame as p
 import random as r
 import os
 
-#!  Recommended 800-1200 WIDTH. NOT RECOMMENDED to touch HEIGHT 
+#? Implement:
+#?      + changeSpawnLimit()
+#?      + Level graphic based on spawnLimit
+#?      + Determing threshold of spawnLimit and Score when game switches modes
+#?      + Boss level?
+
+#!  Recommended 800 or 1000 WIDTH. NOT RECOMMENDED to touch HEIGHT 
 #!  Game was developed on 800x600 so that will provide optimal experience
 
 #Global variables that get used in both files
@@ -10,6 +16,8 @@ WIDTH, HEIGHT = 800, 600 #The resolution/size of the game window
 centerWidth = (WIDTH - 25) // 2
 enemySpawns = [centerWidth, centerWidth-90, centerWidth+90, centerWidth-180, centerWidth+180, centerWidth-270, centerWidth+270]
 spawnLimit = 12
+fullHeart = p.transform.scale(p.image.load('Full Heart.png'), (50,50))
+halfHeart = p.transform.scale(p.image.load('Half Heart.png'), (50,50))
 
 if 800 <= WIDTH:
     enemySpawns.append(centerWidth-360)
@@ -51,12 +59,12 @@ class user(p.sprite.Sprite): #User sprite class
         return proj
     
     def damage(self):
-        if self.health-1 == 0:
+        if self.health-1 <= 0.5:
             self.killUser()
         self.health -= 1
         
     def killUser(self):
-        self.health = 0
+        self.health <= 0
         self.isDead = True
  
 class projectile(p.sprite.Sprite):
@@ -131,6 +139,20 @@ def spawnEnemies(enemies):
             if en.rect.bottom > temp.rect.top-75 and en.rect.left == temp.rect.left and en.rect.right == temp.rect.right:
                 return False
         return en
+
+def drawLives(screen, lives):
+    isWhole = False
+    if lives == int(lives):
+        isWhole = True
+    
+    for i in range(int(lives)):
+        x,y = (WIDTH-((i+1)*55)-105), 5
+        screen.blit(fullHeart, (x,y))
+        if not isWhole and i+1 == int(lives):
+            screen.blit(halfHeart, (x-55,y))
+        
+    # if not isWhole:
+    #     screen.blit(halfHeart, (x,y))
 
 def drawPause(screen, pauseFont, selection): #Draw the pause menu
     screen.fill((255,255,255)) #White border around the pause menu

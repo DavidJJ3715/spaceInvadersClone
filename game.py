@@ -65,6 +65,7 @@ while not user.isDead:
         projectiles.draw(screen) #Draw the shot projectiles to the screen
         func.drawFPS(screen, color, clock.get_fps(), fpsFont) #Draw the FPS to the screen
         func.drawScore(screen, color, highScore, score, fpsFont) #Draw the scores to the screen
+        func.drawLives(screen, user.health)
 
     score = int((p.time.get_ticks() - startTime - timePaused) / 100) + enemiesKilled #Calculate the score based on when the game started, the current time, and the amount of time in the pause menu
     p.display.flip()
