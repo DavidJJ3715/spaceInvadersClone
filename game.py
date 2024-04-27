@@ -8,7 +8,7 @@ p.display.set_caption("Welcome to Hell")
 
 user, userSprite, enemies, projectiles = func.user(), p.sprite.Group(), p.sprite.Group(), p.sprite.Group()
 start, increaseAlpha = True, True
-startTime, fadeSpeed, alpha, enemiesKilled = 0, 1.4, -5, 0
+startTime, fadeSpeed, alpha, enemiesKilled = 0, 1.4, -5, 120
 userSprite.add(user) #Group of all class entities so there are less function calls
 
 timePaused = 0 #Time in the pause menu. 0 by default
@@ -58,7 +58,7 @@ while not user.isDead:
             lifeLost = enemy.update()
             if lifeLost:
                 user.damage()
-        func.changeSpawnLimit(enemiesKilled)
+        func.difficulty(enemiesKilled)
         screen.fill(color) #Update the background color
         userSprite.draw(screen) #Draw the user to the screen
         enemies.draw(screen) #Draw all enemy objects to the screen
@@ -68,6 +68,7 @@ while not user.isDead:
         func.drawLives(screen, user.health)
 
     score = int((p.time.get_ticks() - startTime - timePaused) / 100) + enemiesKilled #Calculate the score based on when the game started, the current time, and the amount of time in the pause menu
+    user.heal(score)
     p.display.flip()
     clock.tick(120) #Frame rate cap
 

@@ -3,7 +3,6 @@ import random as r
 import os
 
 #? Implement:
-#?      + changeSpawnLimit()
 #?      + Level graphic based on spawnLimit
 #?      + Determing threshold of spawnLimit and Score when game switches modes
 #?      + Boss level?
@@ -15,7 +14,8 @@ import os
 WIDTH, HEIGHT = 800, 600 #The resolution/size of the game window 
 centerWidth = (WIDTH - 25) // 2
 enemySpawns = [centerWidth, centerWidth-90, centerWidth+90, centerWidth-180, centerWidth+180, centerWidth-270, centerWidth+270]
-spawnLimit = 12
+spawnLimit, scoreLastHeal = 12, 0
+mirror = False
 fullHeart = p.transform.scale(p.image.load('Full Heart.png'), (50,50))
 halfHeart = p.transform.scale(p.image.load('Half Heart.png'), (50,50))
 
@@ -44,9 +44,9 @@ class user(p.sprite.Sprite): #User sprite class
         self.color = compColor
 
     def update(self, keys): #Take in the events and move the user appropriately
-        if keys[p.K_a] and self.rect.x >= 25:
+        if ((keys[p.K_a] and not mirror) or (keys[p.K_d] and mirror)) and self.rect.x >= 25:
             self.rect.x -= self.speed
-        elif keys[p.K_d] and self.rect.x <= WIDTH-75:
+        elif ((keys[p.K_d] and not mirror) or (keys[p.K_a] and mirror)) and self.rect.x <= WIDTH-75:
             self.rect.x += self.speed
         elif keys[p.K_SPACE]:
             return p.K_SPACE
@@ -66,6 +66,12 @@ class user(p.sprite.Sprite): #User sprite class
     def killUser(self):
         self.health <= 0
         self.isDead = True
+    
+    def heal(self, score):
+        global scoreLastHeal
+        if score >= scoreLastHeal + 500:
+            scoreLastHeal = scoreLastHeal + 500
+            self.health += 0.5
  
 class projectile(p.sprite.Sprite):
     def __init__(self, userColor, userX, userY):
@@ -129,14 +135,31 @@ class enemy(p.sprite.Sprite):
             self.health -= 5 #Not dead, make it take damage
             return False #Tell the projectile that it has not killed the enemy yet
 
-def changeSpawnLimit(enemiesKilled):
-    pass
+def difficulty(enemiesKilled):
+    global spawnLimit, mirror
+    match enemiesKilled:
+        case 15:
+            spawnLimit = 13
+        case 35:
+            spawnLimit = 14
+        case 60:
+            spawnLimit = 15
+        case 90:
+            spawnLimit = 16
+        case 100:
+            spawnLimit = 20
+        case 125:
+            mirror = True
+        case 150:
+            mirror = False
+        case 160:
+            mirror = True
 
 def spawnEnemies(enemies):
     if len(enemies) < spawnLimit:
         en = enemy()
         for temp in enemies:
-            if en.rect.bottom > temp.rect.top-75 and en.rect.left == temp.rect.left and en.rect.right == temp.rect.right:
+            if en.rect.bottom > temp.rect.top-55 and en.rect.left == temp.rect.left and en.rect.right == temp.rect.right:
                 return False
         return en
 
@@ -150,9 +173,6 @@ def drawLives(screen, lives):
         screen.blit(fullHeart, (x,y))
         if not isWhole and i+1 == int(lives):
             screen.blit(halfHeart, (x-55,y))
-        
-    # if not isWhole:
-    #     screen.blit(halfHeart, (x,y))
 
 def drawPause(screen, pauseFont, selection): #Draw the pause menu
     screen.fill((255,255,255)) #White border around the pause menu
