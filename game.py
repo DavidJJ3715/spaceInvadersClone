@@ -8,7 +8,7 @@ p.display.set_caption("Welcome to Hell")
 
 user, userSprite, enemies, projectiles = func.user(), p.sprite.Group(), p.sprite.Group(), p.sprite.Group()
 start, increaseAlpha = True, True
-startTime, fadeSpeed, alpha, enemiesKilled = 0, 1.4, -5, 120
+startTime, fadeSpeed, alpha, enemiesKilled = 0, 1.4, -5, 0
 userSprite.add(user) #Group of all class entities so there are less function calls
 
 timePaused = 0 #Time in the pause menu. 0 by default
@@ -66,6 +66,7 @@ while not user.isDead:
         func.drawFPS(screen, color, clock.get_fps(), fpsFont) #Draw the FPS to the screen
         func.drawScore(screen, color, highScore, score, fpsFont) #Draw the scores to the screen
         func.drawLives(screen, user.health)
+        func.drawKilled(screen, color, enemiesKilled, fpsFont)
 
     score = int((p.time.get_ticks() - startTime - timePaused) / 100) + enemiesKilled #Calculate the score based on when the game started, the current time, and the amount of time in the pause menu
     user.heal(score)
@@ -74,6 +75,8 @@ while not user.isDead:
 
 if score > highScore: #Save the high score to score.txt file if user beat high score
     func.saveScore(score)
+    
+func.endScreen(screen, score, highScore, enemiesKilled, pauseFont)
     
 p.quit()
 sys.exit()

@@ -230,13 +230,18 @@ def drawFPS(screen, color, fps, font):
     screen.blit(fpsText, (WIDTH - 105, 20))
     
 def drawScore(screen, color, highScore, score, font):
-    p.draw.rect(screen, color, (15, 0, 85, 0)) #Draw the high score on the screen
+    p.draw.rect(screen, color, (15, 0, 85, 0)) #Draw the color background
     scoreText = font.render(f"High Score: {highScore:.0f}", True, (255, 255, 255)) 
     screen.blit(scoreText, (15, 20))
     
-    p.draw.rect(screen, color, (15, 45, 85, 15)) #Draw the score on the screen
+    p.draw.rect(screen, color, (15, 45, 85, 15)) #Draw the color background
     scoreText = font.render(f"Score: {score:.0f}", True, (255, 255, 255))
     screen.blit(scoreText, (15, 40))
+    
+def drawKilled(screen, color, enemiesKilled, font):
+    p.draw.rect(screen, color, (15,0,85,0))
+    killedText = font.render(f"Enemies: {enemiesKilled:.0f}", True, (255,255,255))
+    screen.blit(killedText, (15, 60))
     
 def drawStartText(increaseAlpha, alpha, fadeSpeed, startFont, screen):
     match increaseAlpha: #If the alpha is growing, increment
