@@ -145,7 +145,7 @@ def centerUser(screen, userSprite, user, enemies, youngestEnemy, projectiles, co
         speed = 1
      
     while True:
-        if not youngestEnemy.alive():
+        if not enemies.sprites():
             break
         if (WIDTH//2)+1 <= user.rect.x <= (WIDTH//2)+1:
             user.rect.centerx = WIDTH // 2
@@ -159,12 +159,8 @@ def centerUser(screen, userSprite, user, enemies, youngestEnemy, projectiles, co
         drawFPS(screen, color, clock.get_fps(), fpsFont)
         if projectiles.sprites():
             projectiles.draw(screen)
-        else:
-            projectiles.empty()
         if enemies.sprites():
             enemies.draw(screen)
-        else:
-            enemies.empty()
         userSprite.draw(screen)
         p.display.flip()
         clock.tick(120)   
