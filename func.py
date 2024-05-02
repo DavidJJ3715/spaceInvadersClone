@@ -135,6 +135,42 @@ class enemy(p.sprite.Sprite):
             self.health -= 5 #Not dead, make it take damage
             return False #Tell the projectile that it has not killed the enemy yet
 
+def centerUser(screen, userSprite, user, enemies, youngestEnemy, projectiles, color, clock, fpsFont):
+    global mirror
+    mirror = False
+    speed = 0
+    if user.rect.centerx <= WIDTH//2:
+        speed = -1
+    else:
+        speed = 1
+     
+    while True:
+        if not youngestEnemy.alive():
+            break
+        if (WIDTH//2)+1 <= user.rect.x <= (WIDTH//2)+1:
+            user.rect.centerx = WIDTH // 2
+            speed = 0
+        user.rect.x -= speed
+        screen.fill(color)
+        for projectile in projectiles:
+            projectile.update(enemies)
+        for enemy in enemies:
+            enemy.update(), enemy.update(), enemy.update(), enemy.update() #make the enemy fall 4x faster
+        drawFPS(screen, color, clock.get_fps(), fpsFont)
+        if projectiles.sprites():
+            projectiles.draw(screen)
+        else:
+            projectiles.empty()
+        if enemies.sprites():
+            enemies.draw(screen)
+        else:
+            enemies.empty()
+        userSprite.draw(screen)
+        p.display.flip()
+        clock.tick(120)   
+        
+    return projectiles, enemies
+
 def difficulty(enemiesKilled):
     global spawnLimit, mirror
     match enemiesKilled:

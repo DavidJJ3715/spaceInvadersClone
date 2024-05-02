@@ -1,6 +1,7 @@
 import pygame as p
 import sys
 import func
+import boss
 
 p.init() 
 screen = p.display.set_mode((func.WIDTH, func.HEIGHT))
@@ -8,8 +9,9 @@ p.display.set_caption("Welcome to Hell")
 
 user, userSprite, enemies, projectiles = func.user(), p.sprite.Group(), p.sprite.Group(), p.sprite.Group()
 start, increaseAlpha = True, True
-startTime, fadeSpeed, alpha, enemiesKilled = 0, 1.4, -5, 0
+startTime, fadeSpeed, alpha, enemiesKilled, bossDone, bossTime = 0, 1.4, -5, 230, 0, 0
 userSprite.add(user) #Group of all class entities so there are less function calls
+spawned = None
 
 timePaused = 0 #Time in the pause menu. 0 by default
 fpsFont = p.font.SysFont(None, 30) #Font for FPS
@@ -47,6 +49,7 @@ while not user.isDead:
         spawned = func.spawnEnemies(enemies)
         if spawned:
             enemies.add(spawned)
+            youngestEnemy = spawned
         proj = user.shoot(p.time.get_ticks())
         if proj:
             projectiles.add(proj) #Add another projectile if the time is right
@@ -67,16 +70,24 @@ while not user.isDead:
         func.drawScore(screen, color, highScore, score, fpsFont) #Draw the scores to the screen
         func.drawLives(screen, user.health)
         func.drawKilled(screen, color, enemiesKilled, fpsFont)
+        if enemiesKilled == 240:
+            preBossTime = p.time.get_ticks()
+            projectiles, enemies = func.centerUser(screen, userSprite, user, enemies, youngestEnemy, projectiles, color, clock, fpsFont)
+            if not boss.spawn(screen, user, userSprite, pauseFont, clock):
+                user.killUser()
+            bossDone = 1
+            bossTime += p.time.get_ticks() - preBossTime         
 
-    score = int((p.time.get_ticks() - startTime - timePaused) / 100) + enemiesKilled #Calculate the score based on when the game started, the current time, and the amount of time in the pause menu
+    score = int((p.time.get_ticks() - startTime - timePaused - bossTime) / 100) + enemiesKilled + bossDone #Calculate the score based on when the game started, the current time, and the amount of time in the pause menu
     user.heal(score)
     p.display.flip()
+   
     clock.tick(120) #Frame rate cap
 
 if score > highScore: #Save the high score to score.txt file if user beat high score
     func.saveScore(score)
     
-func.endScreen(screen, score, highScore, enemiesKilled, pauseFont)
+# func.endScreen(screen, score, highScore, enemiesKilled, pauseFont)
     
 p.quit()
 sys.exit()
