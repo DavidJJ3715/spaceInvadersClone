@@ -73,7 +73,7 @@ while not user.isDead:
         if enemiesKilled == 240:
             preBossTime = p.time.get_ticks()
             projectiles, enemies = func.centerUser(screen, userSprite, user, enemies, youngestEnemy, projectiles, color, clock, fpsFont)
-            if not boss.spawn(screen, user, userSprite, pauseFont, clock):
+            if not boss.spawn(screen, user, userSprite, pauseFont, clock, fpsFont, color):
                 user.killUser()
             bossDone = 1
             bossTime += p.time.get_ticks() - preBossTime         
