@@ -156,7 +156,7 @@ def centerUser(screen, userSprite, user, enemies, projectiles, color, clock, fps
         speed = 1
      
     while True: #Loop until there are no more enemy sprites on the screen
-        if not enemies.sprites(): #Break out when no more enemies
+        if not enemies.sprites() and user.rect.centerx == WIDTH//2: #Break out when no more enemies AND user is centered
             break
         if (WIDTH//2)+1 <= user.rect.x <= (WIDTH//2)+1: #If the user is centered, set speed to 0
             user.rect.centerx = WIDTH // 2
