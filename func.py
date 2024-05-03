@@ -15,11 +15,11 @@ WIDTH, HEIGHT = 800, 600 #The resolution/size of the game window
 centerWidth = (WIDTH - 25) // 2
 enemySpawns = [centerWidth, centerWidth-90, centerWidth+90, centerWidth-180, centerWidth+180, centerWidth-270, centerWidth+270]
 spawnLimit, scoreLastHeal = 12, 0
-mirror = False
-fullHeart = p.transform.scale(p.image.load('Full Heart.png'), (50,50))
-halfHeart = p.transform.scale(p.image.load('Half Heart.png'), (50,50))
+mirror = False #Variable that determines whether movement will be mirrored or not
+fullHeart = p.transform.scale(p.image.load('Full Heart.png'), (50,50)) #Image of the full heart
+halfHeart = p.transform.scale(p.image.load('Half Heart.png'), (50,50)) #Image of the half heart
 
-if 800 <= WIDTH:
+if 800 <= WIDTH: #Add more values to the list of enemy spawns as the width of the playable screen increases
     enemySpawns.append(centerWidth-360)
     enemySpawns.append(centerWidth+360)
 if 1000 <= WIDTH:
@@ -36,51 +36,62 @@ class user(p.sprite.Sprite): #User sprite class
         self.speed = 15
         self.color = ((255,255,255))
         self.lastShot = 0
-        self.health = 3
-        self.isDead = False
+        self.health = 3 #How many hearts the user spawns with
+        self.isDead = False #If the user is dead
+        self.leftRightOnly = True #Which direction the user is able to move in
 
     def newColor(self, compColor): #Change the color of the user to a complementary color
         self.image.fill(compColor)
         self.color = compColor
 
     def update(self, keys): #Take in the events and move the user appropriately
-        if ((keys[p.K_a] and not mirror) or (keys[p.K_d] and mirror)) and self.rect.x >= 25:
-            self.rect.x -= self.speed
-        elif ((keys[p.K_d] and not mirror) or (keys[p.K_a] and mirror)) and self.rect.x <= WIDTH-75:
-            self.rect.x += self.speed
-        elif keys[p.K_SPACE]:
+        if self.leftRightOnly: #The user can only move left and right
+            if ((keys[p.K_a] and not mirror) or (keys[p.K_d] and mirror)) and self.rect.x >= 25:
+                self.rect.x -= self.speed
+            elif ((keys[p.K_d] and not mirror) or (keys[p.K_a] and mirror)) and self.rect.x <= WIDTH-75:
+                self.rect.x += self.speed
+        else: #The user can move all across the screen
+            if keys[p.K_w] and self.rect.top >= 25:
+                self.rect.y -= self.speed
+            elif keys[p.K_s] and self.rect.bottom <= HEIGHT-25:
+                self.rect.y += self.speed
+            elif keys[p.K_a] and self.rect.left >= 25:
+                self.rect.x -= self.speed
+            elif keys[p.K_d] and self.rect.right <= WIDTH-25:
+                self.rect.x += self.speed
+        if keys[p.K_SPACE]: #Let the program know to change the color of the screen and user
             return p.K_SPACE
-        elif keys[p.K_ESCAPE]:
+        if keys[p.K_ESCAPE]: #Go to the pause menu
             return p.K_ESCAPE
         
-    def shoot(self, currentTime):
+    def shoot(self, currentTime): #Shoot a projectile when the time is right
         self.lastShot = currentTime
         proj = projectile(self.color, self.rect.centerx, self.rect.centery)
         return proj
     
-    def damage(self):
+    def damage(self): #Tell if there has been enough damage to end the game
         if self.health-1 <= 0.5:
             self.killUser()
         self.health -= 1
         
-    def killUser(self):
+    def killUser(self): #User is out of health. End the game
         self.health <= 0
         self.isDead = True
     
-    def heal(self, score):
-        global scoreLastHeal
+    def heal(self, score): #Got enough score to gain half a heart
+        global scoreLastHeal #Variable to make sure the health bar doesn't change several times when the score is a multiple of 500
         if score >= scoreLastHeal + 500:
             scoreLastHeal = scoreLastHeal + 500
-            self.health += 0.5
+            self.health += 0.5 #Gain half a heart
  
-class projectile(p.sprite.Sprite):
+class projectile(p.sprite.Sprite): #Projectiles that get shot out of the user
     def __init__(self, userColor, userX, userY):
         super().__init__()
         self.image = p.Surface((6,6))
         self.image.fill(userColor)
         self.rect = self.image.get_rect()
         self.rect.center = (userX, userY)
-        self.speed = 10
+        self.speed = 10 #How fast the projectile travels across the screen
     
     def update(self, enemies):
         hit, killed = self.collision(enemies) #Collision returns if the projectile hits a target and whether the target is dead or not
@@ -135,39 +146,40 @@ class enemy(p.sprite.Sprite):
             self.health -= 5 #Not dead, make it take damage
             return False #Tell the projectile that it has not killed the enemy yet
 
-def centerUser(screen, userSprite, user, enemies, youngestEnemy, projectiles, color, clock, fpsFont):
-    global mirror
-    mirror = False
+def centerUser(screen, userSprite, user, enemies, projectiles, color, clock, fpsFont):
+    global mirror #Function used to make the initial animation into the boss level
+    mirror = False #Unmirror the controls
     speed = 0
-    if user.rect.centerx <= WIDTH//2:
+    if user.rect.centerx <= WIDTH//2: #Depending on which side of the screen the user is on, make them go to center
         speed = -1
     else:
         speed = 1
      
-    while True:
-        if not enemies.sprites():
+    while True: #Loop until there are no more enemy sprites on the screen
+        if not enemies.sprites(): #Break out when no more enemies
             break
-        if (WIDTH//2)+1 <= user.rect.x <= (WIDTH//2)+1:
+        if (WIDTH//2)+1 <= user.rect.x <= (WIDTH//2)+1: #If the user is centered, set speed to 0
             user.rect.centerx = WIDTH // 2
             speed = 0
-        user.rect.x -= speed
+        user.rect.x -= speed #Move the user
         screen.fill(color)
-        for projectile in projectiles:
+        for projectile in projectiles: #Update every projectile until it is off screen or hits something
             projectile.update(enemies)
-        for enemy in enemies:
+        for enemy in enemies: #Update every enemy until it is off screen or gets killed by a projectile
             enemy.update(), enemy.update(), enemy.update(), enemy.update() #make the enemy fall 4x faster
         drawFPS(screen, color, clock.get_fps(), fpsFont)
-        if projectiles.sprites():
+        if projectiles.sprites(): #If there are projectiles left, draw them
             projectiles.draw(screen)
-        if enemies.sprites():
+        if enemies.sprites(): #If there are enemies left, draw them
             enemies.draw(screen)
         userSprite.draw(screen)
         p.display.flip()
         clock.tick(120)   
         
-    return projectiles, enemies
+    return projectiles, enemies #Give the two empty projectile and enemy lists back to the main game loop.
+                                #Ultimately, I could just empty the two lists in the main loop, but this makes it so I don't need to waste lines in the game.py file
 
-def difficulty(enemiesKilled):
+def difficulty(enemiesKilled): #Determine difficulty based on enemies killed
     global spawnLimit, mirror
     match enemiesKilled:
         case 15:
@@ -180,23 +192,23 @@ def difficulty(enemiesKilled):
             spawnLimit = 16
         case 100:
             spawnLimit = 20
-        case 125:
+        case 125: #Mirror the controls when there are enough dead enemies
             mirror = True
         case 150:
             mirror = False
         case 160:
             mirror = True
 
-def spawnEnemies(enemies):
+def spawnEnemies(enemies): #Spawn a new enemy if the spawn limit is not yet reached
     if len(enemies) < spawnLimit:
         en = enemy()
-        for temp in enemies:
+        for temp in enemies: #Make sure enemies don't spawn inside/directly on top of each other
             if en.rect.bottom > temp.rect.top-55 and en.rect.left == temp.rect.left and en.rect.right == temp.rect.right:
                 return False
         return en
 
-def drawLives(screen, lives):
-    isWhole = False
+def drawLives(screen, lives): #Draw the hearts on the screen
+    isWhole = False #Determine if it should be a half or whole heart
     if lives == int(lives):
         isWhole = True
     
@@ -270,7 +282,7 @@ def drawScore(screen, color, highScore, score, font):
     scoreText = font.render(f"Score: {score:.0f}", True, (255, 255, 255))
     screen.blit(scoreText, (15, 40))
     
-def drawKilled(screen, color, enemiesKilled, font):
+def drawKilled(screen, color, enemiesKilled, font): #Draw the amount of enemies killed so far
     p.draw.rect(screen, color, (15,0,85,0))
     killedText = font.render(f"Enemies: {enemiesKilled:.0f}", True, (255,255,255))
     screen.blit(killedText, (15, 60))

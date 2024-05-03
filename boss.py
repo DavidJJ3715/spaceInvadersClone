@@ -15,6 +15,7 @@ def spawn(screen, user, userSprite, pauseFont, clock, fpsFont, color):
                 case p.K_ESCAPE:
                     if func.pause(screen, pauseFont) == "quit":
                         return False
+        screen.fill(color)
         userSprite.draw(screen)
         func.drawFPS(screen, color, clock.get_fps(), fpsFont)
         p.display.flip()
