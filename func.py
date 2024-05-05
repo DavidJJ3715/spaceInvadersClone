@@ -1,6 +1,7 @@
 import pygame as p
 import random as r
 import os
+import classes
 
 #? Implement:
 #?      + Level graphic based on spawnLimit
@@ -10,7 +11,9 @@ import os
 #!  Recommended 800 or 1000 WIDTH. NOT RECOMMENDED to touch HEIGHT 
 #!  Game was developed on 800x600 so that will provide optimal experience
 
-#Global variables that get used in both files
+#################################################
+#               Global Variables                #
+#################################################
 WIDTH, HEIGHT = 800, 600 #The resolution/size of the game window 
 centerWidth = (WIDTH - 25) // 2
 enemySpawns = [centerWidth, centerWidth-90, centerWidth+90, centerWidth-180, centerWidth+180, centerWidth-270, centerWidth+270]
@@ -18,6 +21,8 @@ spawnLimit, scoreLastHeal = 12, 0
 mirror = False #Variable that determines whether movement will be mirrored or not
 fullHeart = p.transform.scale(p.image.load('Full Heart.png'), (50,50)) #Image of the full heart
 halfHeart = p.transform.scale(p.image.load('Half Heart.png'), (50,50)) #Image of the half heart
+gearLarge = p.transform.scale(p.image.load('Settings Icon.png'), (105,105)) #Image of larger gear for settings menu
+gearSmall = p.transform.scale(p.image.load('Settings Icon.png'), (65,65)) #Image of smaller gear for settings menu
 
 if 800 <= WIDTH: #Add more values to the list of enemy spawns as the width of the playable screen increases
     enemySpawns.append(centerWidth-360)
@@ -26,126 +31,10 @@ if 1000 <= WIDTH:
     enemySpawns.append(centerWidth-450)
     enemySpawns.append(centerWidth+450)
 
-class user(p.sprite.Sprite): #User sprite class
-    def __init__(self):
-        super().__init__()
-        self.image = p.Surface((50, 50))  #Create a surface for the character
-        self.image.fill((255,255,255))  #Fill the surface with white color
-        self.rect = self.image.get_rect()  #Get the rectangular area of the surface
-        self.rect.center = ((WIDTH - 25) // 2, HEIGHT - 50)  #Set initial position
-        self.speed = 15
-        self.color = ((255,255,255))
-        self.lastShot = 0
-        self.health = 3 #How many hearts the user spawns with
-        self.isDead = False #If the user is dead
-        self.leftRightOnly = True #Which direction the user is able to move in
 
-    def newColor(self, compColor): #Change the color of the user to a complementary color
-        self.image.fill(compColor)
-        self.color = compColor
-
-    def update(self, keys): #Take in the events and move the user appropriately
-        if self.leftRightOnly: #The user can only move left and right
-            if ((keys[p.K_a] and not mirror) or (keys[p.K_d] and mirror)) and self.rect.x >= 25:
-                self.rect.x -= self.speed
-            elif ((keys[p.K_d] and not mirror) or (keys[p.K_a] and mirror)) and self.rect.x <= WIDTH-75:
-                self.rect.x += self.speed
-        else: #The user can move all across the screen
-            if keys[p.K_w] and self.rect.top >= 25:
-                self.rect.y -= self.speed
-            elif keys[p.K_s] and self.rect.bottom <= HEIGHT-25:
-                self.rect.y += self.speed
-            elif keys[p.K_a] and self.rect.left >= 25:
-                self.rect.x -= self.speed
-            elif keys[p.K_d] and self.rect.right <= WIDTH-25:
-                self.rect.x += self.speed
-        if keys[p.K_SPACE]: #Let the program know to change the color of the screen and user
-            return p.K_SPACE
-        if keys[p.K_ESCAPE]: #Go to the pause menu
-            return p.K_ESCAPE
-        
-    def shoot(self, currentTime): #Shoot a projectile when the time is right
-        self.lastShot = currentTime
-        proj = projectile(self.color, self.rect.centerx, self.rect.centery)
-        return proj
-    
-    def damage(self): #Tell if there has been enough damage to end the game
-        if self.health-1 <= 0.5:
-            self.killUser()
-        self.health -= 1
-        
-    def killUser(self): #User is out of health. End the game
-        self.health <= 0
-        self.isDead = True
-    
-    def heal(self, score): #Got enough score to gain half a heart
-        global scoreLastHeal #Variable to make sure the health bar doesn't change several times when the score is a multiple of 500
-        if score >= scoreLastHeal + 500:
-            scoreLastHeal = scoreLastHeal + 500
-            self.health += 0.5 #Gain half a heart
- 
-class projectile(p.sprite.Sprite): #Projectiles that get shot out of the user
-    def __init__(self, userColor, userX, userY):
-        super().__init__()
-        self.image = p.Surface((6,6))
-        self.image.fill(userColor)
-        self.rect = self.image.get_rect()
-        self.rect.center = (userX, userY)
-        self.speed = 10 #How fast the projectile travels across the screen
-    
-    def update(self, enemies):
-        hit, killed = self.collision(enemies) #Collision returns if the projectile hits a target and whether the target is dead or not
-        if self.rect.bottom < 0 or hit: #Kill the projectile if the target is hit
-            self.kill() #Destroy the projectile
-            return killed #Return whether or not an enemy was just hit, or was killed
-        else:
-            self.rect.y -= self.speed #Nothing was hit. Keep the projectile moving
-            return False
-    
-    def collision(self, enemies): 
-        for enemy in enemies: #Go through every enemy on screen to see if there is a collision
-            if self.rect.top <= enemy.rect.bottom: #If the top of the projectile is above the bottom of the enemy
-                if self.rect.left >= enemy.rect.right-36 and self.rect.right <= enemy.rect.left+36: #Check if the projectile is close enough to the enemy left and right
-                    if enemy.damage(): #Check if the enemy was hit
-                        return True, True #Return hit and kill
-                    else:
-                        return True, False #Return hit and no kill
-        return False, False
-    
-class enemy(p.sprite.Sprite):
-    def __init__(self):
-        super().__init__()
-        self.image = p.Surface((30,30))
-        self.image.fill(getColor())
-        self.rect = self.image.get_rect()
-        self.rect.center = (enemySpawns[r.randint(0,len(enemySpawns)-1)], 20)
-        self.speed = 1
-        self.accel, self.accel2 = True, True
-        self.health = 100
-        
-    def update(self):
-        if self.accel and self.accel2: #Box is not on bottom yet, update it if it is time
-            self.rect.y += self.speed
-            self.accel, self.accel2 = False, False
-        else: #This boolean flag is because setting the speed to below one just rounds to either one or zero. This allows the programmer to use fractions of speed
-            if not self.accel:
-                self.accel = True
-            elif self.accel:
-                self.accel2 = True
-        if self.rect.bottom > HEIGHT-45: #Is the box on the bottom? Take a life
-            self.kill()
-            return True 
-        else: #Box is not at bottom, don't take a life
-            return False    
-
-    def damage(self):
-        if self.health <= 0: #Check if the enemy is dead
-            self.kill() #Is dead, so destroy the enemy
-            return True #Tell the projectile that it killed an enemy
-        else: 
-            self.health -= 5 #Not dead, make it take damage
-            return False #Tell the projectile that it has not killed the enemy yet
-
+#####################################################
+#               Transition Functions                #
+#####################################################
 def centerUser(screen, userSprite, user, enemies, projectiles, color, clock, fpsFont):
     global mirror #Function used to make the initial animation into the boss level
     mirror = False #Unmirror the controls
@@ -179,6 +68,10 @@ def centerUser(screen, userSprite, user, enemies, projectiles, color, clock, fps
     return projectiles, enemies #Give the two empty projectile and enemy lists back to the main game loop.
                                 #Ultimately, I could just empty the two lists in the main loop, but this makes it so I don't need to waste lines in the game.py file
 
+
+#################################################
+#               Core Functionality              #
+#################################################
 def difficulty(enemiesKilled): #Determine difficulty based on enemies killed
     global spawnLimit, mirror
     match enemiesKilled:
@@ -201,12 +94,40 @@ def difficulty(enemiesKilled): #Determine difficulty based on enemies killed
 
 def spawnEnemies(enemies): #Spawn a new enemy if the spawn limit is not yet reached
     if len(enemies) < spawnLimit:
-        en = enemy()
+        en = classes.enemy()
         for temp in enemies: #Make sure enemies don't spawn inside/directly on top of each other
             if en.rect.bottom > temp.rect.top-55 and en.rect.left == temp.rect.left and en.rect.right == temp.rect.right:
                 return False
         return en
 
+def pause(screen, startFont): #Pause the game and wait for a resume or quit event
+    selection = "resume"
+    while True:
+        drawPause(screen, startFont, selection)
+        for event in p.event.get():
+            match event.type:
+                case p.QUIT:
+                    return True
+                case p.KEYDOWN:
+                    match event.key:
+                        case p.K_RETURN:
+                            return selection
+                        case p.K_UP: #Use a variable to determine which selection to highlight in the above function
+                            selection = "resume"
+                        case p.K_DOWN:
+                            selection = "quit"
+
+def getColor(): #Return an RGB value tuple
+    return (r.randint(0,255), r.randint(0,255), r.randint(0,255)) 
+
+def getCompColor(color):
+    R,G,B = color #Extract RGB components
+    return (255-R, 255-G, 255-B)
+
+
+#############################################
+#               Draw Functions              #
+#############################################
 def drawLives(screen, lives): #Draw the hearts on the screen
     isWhole = False #Determine if it should be a half or whole heart
     if lives == int(lives):
@@ -243,30 +164,6 @@ def drawPause(screen, pauseFont, selection): #Draw the pause menu
             p.draw.rect(screen, (212, 175, 55), ((WIDTH - 300) // 2, HEIGHT - 233, 300, 100), 5)
     
     p.display.flip()
-
-def pause(screen, startFont): #Pause the game and wait for a resume or quit event
-    selection = "resume"
-    while True:
-        drawPause(screen, startFont, selection)
-        for event in p.event.get():
-            match event.type:
-                case p.QUIT:
-                    return True
-                case p.KEYDOWN:
-                    match event.key:
-                        case p.K_RETURN:
-                            return selection
-                        case p.K_UP: #Use a variable to determine which selection to highlight in the above function
-                            selection = "resume"
-                        case p.K_DOWN:
-                            selection = "quit"
-
-def getColor(): #Return an RGB value tuple
-    return (r.randint(0,255), r.randint(0,255), r.randint(0,255)) 
-
-def getCompColor(color):
-    R,G,B = color #Extract RGB components
-    return (255-R, 255-G, 255-B)
         
 def drawFPS(screen, color, fps, font):
     p.draw.rect(screen, color, (WIDTH - 105, 20, 85, 17)) #Draw the FPS on the screen
@@ -305,6 +202,32 @@ def drawStartText(increaseAlpha, alpha, fadeSpeed, startFont, screen):
     screen.blit(startText, (WIDTH // 2 - startText.get_width() // 2, HEIGHT // 2 - startText.get_height() // 2))
     return increaseAlpha, alpha
 
+def drawStartScreen(screen, startFont, fpsFont, user, clock):
+    stayAtStartScreen, increaseAlpha = True, True
+    fadeSpeed, alpha = 1.4, -5
+    while stayAtStartScreen:
+        for event in p.event.get():
+            if event.type == p.QUIT: #User hits the "x" to close the window
+                user.killUser() #Kill the user, ending the main game loop
+                stayAtStartScreen = False
+            elif event.type == p.KEYDOWN:
+                if event.key == p.K_SPACE: #Break out of the start screen and begin gameplay
+                    stayAtStartScreen = False
+                    break
+                elif event.key == p.K_s: #Enter the settings menu
+                    pass
+            
+        increaseAlpha, alpha = drawStartText(increaseAlpha, alpha, fadeSpeed, startFont, screen)
+        screen.blit(gearLarge, (0,0))
+        screen.blit(gearSmall, (gearLarge.get_width()//2, gearLarge.get_height()//2))
+        screen.blit(fpsFont.render("(S)ettings", True, (255,255,255)), (12, gearLarge.get_height()))
+        p.display.flip()
+        clock.tick(120)
+
+
+#################################################
+#               Save File Functions             #
+#################################################
 def loadSave(): #Load in the value from the score.txt file
     if os.path.exists("score.txt"):
         with open("score.txt", "r") as file:
